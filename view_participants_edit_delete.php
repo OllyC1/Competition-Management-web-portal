@@ -1,114 +1,138 @@
+<?php
+// Start session
+session_start();
+
+// Check if user is logged in
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: admin_login.html");
+    exit;
+}
+
+// Include database connection
+include 'dbconnect.php';
+
+// Fetch all participants
+$sql = "SELECT p.*, t.name as team_name FROM participant p 
+        LEFT JOIN team t ON p.team_id = t.id 
+        ORDER BY p.firstname, p.surname";
+$result = $conn->query($sql);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>View participants</title>
+    <title>Manage Participants | UK E-Sports League</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<style>
-	
-        body{
-            font-family: Arial, Helvetica, sans-serif;
-            padding: 10px;
-            margin: 10px;
-            background-color: black;
-			display: flex;
-      flex-direction: column;
-             
-        }
-        h1{
-            text-align: center;
-            color: white;
-            text-decoration:underline;
-        }
-        a.button {
-            
-            padding:5px;
-            background-color:green;
-            color:white;
-            border-radius:3px;
-            margin-top:3px;
-            display:block;
-            width:130px;
-            text-decoration:none;
-			 
-        }
-        a.dbutton {
-        
-            padding:5px;
-            background-color:red;
-            color:white;
-            border-radius:3px;
-            margin-top:3px;
-            display:block;
-            width:130px;
-            text-decoration:none;
-			
-        }
-	 table, th, td {
-  border: 1px solid white;
-  border-collapse: collapse;
-}
-        table{
-            color: white;
-        }
-        td{
-            text-align: center;
-        }
-    </style>
-    <a href="admin_menu.php">Back to Admin Portal</a>
-    <h1>View all of the participants for edit or delete</h1>
-    
-    <table>
-        <tr>
-            <th>ID</th><th>Firstname</th><th>Surname</th><th>Email</th><th>Power Output</th><th>Distance</th><th>Club ID</th><th>Update participant</th><th>Delete Participant</th>
-    <?php
-        
-    //including connection variables - remember to update these if you are using XAMPP    
-    include 'dbconnect.php';
-        
-        try {
-            $conn = new PDO("mysql:host=$servername;port=$port;dbname=$database", $username, $password); //building a new connection object
-            // set the PDO error mode to exception
-            $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            
-            //TODO SELECT - view the participants with links to edit or delete them. 
-             //Selecting multiple rows from a MySQL database using the PDO::query function.
-            //SOrting the data by the ID field and limiting the results to the last 50 for the purpose of this example
-            $sql = "SELECT * FROM participant ORDER BY id";
-            
-            //For each result that we return, loop through the result and perform the echo statements.
-            //Data will be formatted into a table
-            //$row is an array with the fields for each record returned from the SELECT
-                foreach($conn->query($sql, PDO::FETCH_ASSOC) as $row){
-                    echo '<tr>';
-                    echo '<td>'. $row['id'] . '</td>';
-                    echo '<td>'. $row['firstname'] . '</td>';
-                    echo '<td>'. $row['surname'] . '</td>';
-                    echo '<td>'. $row['email'] . '</td>';
-                    echo '<td>'. $row['power_output'] . '</td>';
-                    echo '<td>'. $row['distance'] . '</td>';
-                    echo '<td>'. $row['club_id'] . '</td>';
-                    
-                   
-                    //Updated script now includes a link to update or delete the person
-                    //The link passes over the id of the person to the URL, to use on either the delete or the update script. 
-                    echo '<td><a href="update_participant.php?id='.$row['id'].'" class="button">Update this participant</a></td>';
-                    echo '<td><a href="delete_participant.php?id='.$row['id'].'" class="dbutton" onclick="return confirm(\'Are you sure you want to delete this participant?\');">Delete this participant</a></td>';
-                    
-                    echo '</tr>';
-                }
-            
-            }
-            
-        catch(PDOException $e)
-            {
-            echo $e->getMessage(); //If we are not successful we will see an error
-            }
-        ?>
-</table> 
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="admin_menu.php">
+                <i class="bi bi-controller me-2"></i>UK E-Sports League
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin_menu.php">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="view_participants_edit_delete.php">
+                            <i class="bi bi-people me-1"></i> Participants
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="search_form.php">
+                            <i class="bi bi-search me-1"></i> Search
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="logout.php">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
+    <div class="container my-5">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">
+                        <i class="bi bi-people-fill me-2"></i>
+                        Participants Management
+                    </h2>
+                    <a href="admin_menu.php" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>First Name</th>
+                                <th>Surname</th>
+                                <th>Email</th>
+                                <th>Team</th>
+                                <th>Kills</th>
+                                <th>Deaths</th>
+                                <th>K/D Ratio</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            if ($result && $result->num_rows > 0) {
+                                while($row = $result->fetch_assoc()) {
+                                    // Calculate K/D ratio
+                                    $kd_ratio = ($row["deaths"] > 0) ? round($row["kills"] / $row["deaths"], 2) : $row["kills"];
+                                    
+                                    echo "<tr>";
+                                    echo "<td>" . htmlspecialchars($row["firstname"]) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row["surname"]) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row["email"]) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row["team_name"]) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row["kills"]) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row["deaths"]) . "</td>";
+                                    echo "<td>" . $kd_ratio . "</td>";
+                                    echo "<td class='text-nowrap'>";
+                                    echo "<a href='edit_participant_form.php?id=" . $row["id"] . "' class='btn btn-primary btn-sm me-1'><i class='bi bi-pencil'></i> Edit</a>";
+                                    echo "<a href='delete.php?id=" . $row["id"] . "' class='btn btn-danger btn-sm'><i class='bi bi-trash'></i> Delete</a>";
+                                    echo "</td>";
+                                    echo "</tr>";
+                                }
+                            } else {
+                                echo "<tr><td colspan='8' class='text-center'>No participants found</td></tr>";
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 mt-auto">
+        <div class="container">
+            <p class="mb-0">&copy; 2025 UK E-Sports League. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
